@@ -1,24 +1,18 @@
-use actix_web::web::{Data, Json, Path};
-use actix_web::{web, HttpResponse};
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use diesel::result::Error;
-use diesel::{ExpressionMethods, Insertable, Queryable, RunQueryDsl};
+use actix_web::web::{Json, Path};
+use actix_web::HttpResponse;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::constants::{APPLICATION_JSON, CONNECTION_POOL_ERROR};
-use crate::like::{list_likes, Like};
-use crate::response::{DBPool, DBPooledConnection};
-
-use super::schema::tweets;
-use diesel::query_dsl::methods::{FilterDsl, LimitDsl, OrderDsl;
-use std::str::FromStr;
+use crate::constants::APPLICATION_JSON;
+use crate::like::Like;
+use crate::response::Response;
 
 pub type Tweets = Response<Tweet>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Tweet {
-    pud id: String,
+    pub id: String,
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub likes: Vec<Like>,
@@ -37,6 +31,10 @@ impl Tweet {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TweetRequest {
+    pub message: Option<String>,
+}
+
+impl TweetRequest {
     pub fn to_tweet(&self) -> Option<Tweet> {
         match &self.message {
             Some(message) => Some(Tweet::new(message.to_string())),
@@ -45,10 +43,10 @@ pub struct TweetRequest {
     }
 }
 
-// get list of 50 latest tweets
+/// list 50 last tweets `/tweets`
 #[get("/tweets")]
 pub async fn list() -> HttpResponse {
-    // TODO: find last 50 tweets and return them
+    // TODO find the last 50 tweets and return them
 
     let tweets = Tweets { results: vec![] };
 
@@ -57,7 +55,7 @@ pub async fn list() -> HttpResponse {
         .json(tweets)
 }
 
-// create a tweet
+/// create a tweet `/tweets`
 #[post("/tweets")]
 pub async fn create(tweet_req: Json<TweetRequest>) -> HttpResponse {
     HttpResponse::Created()
@@ -65,10 +63,10 @@ pub async fn create(tweet_req: Json<TweetRequest>) -> HttpResponse {
         .json(tweet_req.to_tweet())
 }
 
-// find a tweet by id
+/// find a tweet by its id `/tweets/{id}`
 #[get("/tweets/{id}")]
 pub async fn get(path: Path<(String,)>) -> HttpResponse {
-    // TODO: find a tweet by its id and return it
+    // TODO find tweet a tweet by ID and return it
     let found_tweet: Option<Tweet> = None;
 
     match found_tweet {
@@ -82,10 +80,12 @@ pub async fn get(path: Path<(String,)>) -> HttpResponse {
     }
 }
 
-// delete a tweet by its id
+/// delete a tweet by its id `/tweets/{id}`
 #[delete("/tweets/{id}")]
 pub async fn delete(path: Path<(String,)>) -> HttpResponse {
-    // TODO: delete tweet using given id
+    // TODO delete tweet by ID
+    // in any case return status 204
+
     HttpResponse::NoContent()
         .content_type(APPLICATION_JSON)
         .await
